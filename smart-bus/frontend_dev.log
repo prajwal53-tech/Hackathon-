@@ -1,0 +1,12 @@
+
+> frontend@0.0.0 dev
+> vite --host 0.0.0.0 --port 5173
+
+
+  VITE v7.1.5  ready in 158 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://172.30.0.2:5173/
+7:35:01 AM [vite] (client) hmr update /src/App.tsx
+7:35:25 AM [vite] (client) page reload src/main.tsx
+7:35:42 AM [vite] (client) hmr update /src/App.tsx
