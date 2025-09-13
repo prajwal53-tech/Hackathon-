@@ -11,7 +11,25 @@ type Route = { id: string; name: string; stops: string[] }
 type Bus = { id: string; route_id: string; lat: number; lon: number; next_stop_id?: string; eta_next_stop_s?: number }
 type Schedule = { route_id: string; stop_id: string; planned_time: number; optimized_time?: number }
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000'
+const API_BASE = (() => {
+  const envObj = (import.meta as any).env as { VITE_API_BASE?: string; DEV?: boolean } | undefined
+  const raw = envObj?.VITE_API_BASE
+  const trimmed = raw?.trim()
+
+  if (!trimmed) {
+    return envObj?.DEV ? '/api' : window.location.origin
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  if (trimmed.startsWith('/')) return trimmed
+
+  // Handle malformed values like ':8000'
+  if (trimmed.startsWith(':')) {
+    return envObj?.DEV ? '/api' : window.location.origin
+  }
+
+  return trimmed
+})()
 
 function App() {
   const [stops, setStops] = useState<Stop[]>([])
@@ -24,10 +42,17 @@ function App() {
 
   useEffect(() => {
     ;(async () => {
-      const res = await axios.get(`${API_BASE}/static`)
-      setStops(res.data.stops)
-      setRoutes(res.data.routes)
-      setSchedule(res.data.schedule)
+      try {
+        const res = await axios.get(`${API_BASE}/static`)
+        setStops(res.data.stops)
+        setRoutes(res.data.routes)
+        setSchedule(res.data.schedule)
+      } catch (err: any) {
+        setAlerts((prev) => [
+          `Failed to load static data (${err?.message ?? 'unknown error'}). Check backend availability.`,
+          ...prev,
+        ].slice(0, 5))
+      }
     })()
   }, [])
 
